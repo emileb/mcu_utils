@@ -5,7 +5,6 @@
 
 #define TIMEOUT 1000
 
-static uint8_t buff[RX_DMA_SIZE];
 
 static void pushIntoFifo(tUartDevice *uartDev, uint8_t *data, size_t size)
 {
@@ -29,7 +28,7 @@ void uartStartRx(tUartDevice *uartDev)
 {
 	__HAL_DMA_ENABLE_IT (uartDev->dma, DMA_IT_TC);
 
-	HAL_UART_Receive_DMA(uartDev->usart, buff, RX_DMA_SIZE);
+	HAL_UART_Receive_DMA(uartDev->usart, uartDev->dmaRxBuffer, RX_DMA_SIZE);
 
 }
 

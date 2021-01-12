@@ -3,6 +3,7 @@
 #include "stm32f7xx_hal.h"
 #include "GUI.h"
 #include "stm32f746_touchscreen.h"
+#include "../STemWin.h"
 
 #define TS_I2C_ADDRESS                   ((uint16_t)0x70)
 

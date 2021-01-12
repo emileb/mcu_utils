@@ -115,8 +115,6 @@ void    BSP_TS_ITClear(void);
 uint8_t BSP_TS_ResetTouchData(TS_StateTypeDef *TS_State);
 */
 
-void TouchDriver_Init(I2C_HandleTypeDef *i2cDev);
-void TouchDriver_Poll(void);
 
 
 #ifdef __cplusplus

@@ -14,11 +14,12 @@ static void pushIntoFifo(tUartDevice *uartDev, uint8_t *data, size_t size)
 	}
 }
 
-void uartInit(tUartDevice *uartDev, UART_HandleTypeDef *uart, DMA_HandleTypeDef *dma)
+void uartInit(tUartDevice *uartDev, UART_HandleTypeDef *uart, DMA_HandleTypeDef *dmaRx, DMA_HandleTypeDef *dmaTx)
 {
 
 	uartDev->uart = uart;
-	uartDev->dma = dma;
+	uartDev->dmaRx = dmaRx;
+	uartDev->dmaTx = dmaTx;
 	uartDev->dmaOldPos = 0;
 	fifo_init(&uartDev->fifo, uartDev->fifoBuffer, RX_FIFO_SIZE);
 
@@ -26,7 +27,7 @@ void uartInit(tUartDevice *uartDev, UART_HandleTypeDef *uart, DMA_HandleTypeDef 
 
 void uartStartRx(tUartDevice *uartDev)
 {
-	__HAL_DMA_ENABLE_IT (uartDev->dma, DMA_IT_TC);
+	__HAL_DMA_ENABLE_IT (uartDev->dmaRx, DMA_IT_TC);
 
 	HAL_UART_Receive_DMA(uartDev->uart, uartDev->dmaRxBuffer, RX_DMA_SIZE);
 
@@ -37,7 +38,7 @@ void uartRxCheck(tUartDevice *uartDev)
 
 	size_t pos;
 
-	pos = RX_DMA_SIZE - __HAL_DMA_GET_COUNTER(uartDev->dma);
+	pos = RX_DMA_SIZE - __HAL_DMA_GET_COUNTER(uartDev->dmaRx);
 
 	if (pos != uartDev->dmaOldPos)
 	{
@@ -77,7 +78,16 @@ uint8_t uartGetByte(tUartDevice *uartDev)
 
 bool uartTxBuffer(tUartDevice *uartDev, uint8_t *data, size_t len)
 {
-	HAL_UART_Transmit(uartDev->uart, data, len, TIMEOUT);
+	if(uartDev->dmaTx)
+	{
+		memcpy(uartDev->dmaTxBuffer, data, len);
+
+		HAL_UART_Transmit_DMA(uartDev->uart, uartDev->dmaTxBuffer, len);
+	}
+	else
+	{
+		HAL_UART_Transmit(uartDev->uart, data, len, TIMEOUT);
+	}
 	return true;
 }
 

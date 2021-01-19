@@ -13,7 +13,9 @@ typedef struct
 {
 
 	UART_HandleTypeDef *uart;
-	DMA_HandleTypeDef *dma;
+	DMA_HandleTypeDef *dmaRx;
+	DMA_HandleTypeDef *dmaTx;
+	uint8_t dmaTxBuffer[RX_DMA_SIZE];
 	uint8_t dmaRxBuffer[RX_DMA_SIZE];
 	size_t dmaOldPos;
 	fifo_t fifo;
@@ -21,7 +23,7 @@ typedef struct
 
 } tUartDevice;
 
-void uartInit(tUartDevice *uartDev, UART_HandleTypeDef *usart, DMA_HandleTypeDef *dma);
+void uartInit(tUartDevice *uartDev, UART_HandleTypeDef *usart, DMA_HandleTypeDef *dmaRx, DMA_HandleTypeDef *dmaTx);
 
 void uartStartRx(tUartDevice *uartDev);
 

@@ -49,8 +49,8 @@ static bool receiveDecode(tModBusDevice *device)
 
 	uint16_t crc = calcCrc(device->receiveData, device->receivePos - 2);
 
-	uint16_t crcMsg = (device->receiveData[device->receivePos - 2]) | (crcMsg =
-			device->receiveData[device->receivePos - 1] << 8);
+	uint16_t crcMsg = (device->receiveData[device->receivePos - 2])
+			| (crcMsg = device->receiveData[device->receivePos - 1] << 8);
 
 	if (crc == crcMsg)
 	{
@@ -146,7 +146,7 @@ bool modbus_checkReceive(tModBusDevice *device)
 	{
 		uint8_t b = uartGetByte(device->uartDev);
 
-		if( processByte(device, b) )
+		if (processByte(device, b))
 		{
 			messageReady = true;
 			break;
@@ -160,13 +160,17 @@ static void sendMessage(tModBusDevice *device, uint8_t *msg, int32_t len)
 {
 	uint16_t crc = calcCrc(msg, len);
 
-	uartTxBuffer(device->uartDev, msg, len);
-	uartTxBuffer(device->uartDev, (uint8_t*) &crc, 2);
+	// Modbus is sensitive to gaps in the message, so always send as one whole block
+	uint8_t msgWhole[len + 2];
+
+	memcpy(msgWhole, msg, len);
+	memcpy(msgWhole + len, &crc, 2);
+
+	uartTxBuffer(device->uartDev, msgWhole, len + 2);
 }
 
 void modbus_init(tModBusDevice *device, tUartDevice *uartDev, uint8_t id)
 {
-
 	device->uartDev = uartDev;
 	device->id = id;
 }

@@ -37,6 +37,8 @@ void modbus_sendDiag(tModBusDevice *device);
 
 uint16_t modbus_sendReadReg(tModBusDevice *device, uint16_t reg);
 
+void modbus_sendWriteReg(tModBusDevice *device, uint16_t reg, uint16_t data);
+
 bool modbus_checkReceive(tModBusDevice *device);
 
 #endif /* MODBUS_H_ */

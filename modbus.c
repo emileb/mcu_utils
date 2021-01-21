@@ -3,6 +3,7 @@
 #include "modbus.h"
 
 #define CMD_MULTI_READ 0x3
+#define CMD_SINGLE_WRITE 0x6
 
 typedef enum
 {
@@ -200,3 +201,19 @@ uint16_t modbus_sendReadReg(tModBusDevice *device, uint16_t reg)
 
 	return 0;
 }
+
+void modbus_sendWriteReg(tModBusDevice *device, uint16_t reg, uint16_t data)
+{
+	const uint8_t cmd = CMD_SINGLE_WRITE;
+
+	uint8_t message[] =
+	{ device->id, cmd, (reg >> 8) & 0xFF, reg & 0xFF, (data >> 8) & 0xFF, data & 0xFF };
+
+	sendMessage(device, message, sizeof(message));
+
+	device->lastSentCmd = cmd;
+	resetReceiveState(device);
+
+	return;
+}
+

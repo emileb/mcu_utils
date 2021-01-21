@@ -57,7 +57,7 @@
 *    Multi tasking support
 */
        
- #define GUI_OS                (0)       // Compile with multitasking support
+ #define GUI_OS                (1)       // Compile with multitasking support
 
 /*********************************************************************
 *

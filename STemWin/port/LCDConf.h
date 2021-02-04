@@ -1,12 +1,8 @@
-  /**
-  ******************************************************************************
-  * @file    STemWin_wrapper.h
-  * @author  MCD Application Team
-  * @brief   Header for STemWin_wrapper.c module
+/**
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2018 STMicroelectronics International N.V. 
+  * <h2><center>&copy; Copyright (c) 2016 STMicroelectronics International N.V. 
   * All rights reserved.</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without 
@@ -42,20 +38,20 @@
   *
   ******************************************************************************
   */
-  
 #include "main.h"
 #include "GUI.h"
 #include "GUIDRV_Lin.h"
-#include <stdint.h>
 
-#ifndef STEMWIN_WRAPPER_H
-#define STEMWIN_WRAPPER_H
 
-/* Exported types ------------------------------------------------------------*/
+
+#ifndef LCDCONF_H
+#define LCDCONF_H
+
+
 typedef struct
 {
   int32_t      address;          
-  int32_t      pending_buffer;   
+  __IO int32_t pending_buffer;   
   int32_t      buffer_index;     
   int32_t      xSize;            
   int32_t      ySize;            
@@ -64,7 +60,6 @@ typedef struct
 }
 LCD_LayerPropTypedef;
 
+#endif /* LCDCONF_H */
 
-#endif /* STEMWIN_WRAPPER_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/*************************** End of file ****************************/

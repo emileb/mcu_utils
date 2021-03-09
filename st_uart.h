@@ -4,7 +4,12 @@
 
 
 #include "fifo.h"
-#include "stm32f7xx_hal.h"
+
+#if  defined(STM32F76xx)
+	#include "stm32f7xx_hal.h"
+#elif defined(STM32G431xx)
+	#include "stm32g4xx_hal.h"
+#endif
 
 #define RX_DMA_SIZE 64
 #define RX_FIFO_SIZE 64

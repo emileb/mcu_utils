@@ -12,29 +12,29 @@
 #include "stm32f3xx_ll_pwr.h"
 #include "stm32f3xx_ll_bus.h"
 
-#include "stepper.h"
+#include "pulse_engine.h"
 
-volatile tPulseEngine pulseEngine[NBR_PULSE] = {0};
+static volatile tPulseEngine *m_pulseEngines;
+static uint32_t m_nbrEngines;
 
 
 void gpio_init()
 {
 	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
 
-	for( int n = 0; n < NBR_PULSE; n++ )
+	for( int n = 0; n < m_nbrEngines; n++ )
 	{
-		LL_GPIO_SetPinMode(pulseEngine[n].port, pulseEngine[n].pin, LL_GPIO_MODE_OUTPUT);
-		LL_GPIO_SetPinPull(pulseEngine[n].port, pulseEngine[n].pin, LL_GPIO_PULL_NO);
-		LL_GPIO_SetPinSpeed(pulseEngine[n].port, pulseEngine[n].pin, LL_GPIO_SPEED_FREQ_HIGH);
+		LL_GPIO_SetPinMode(m_pulseEngines[n].port, m_pulseEngines[n].pin, LL_GPIO_MODE_OUTPUT);
+		LL_GPIO_SetPinPull(m_pulseEngines[n].port, m_pulseEngines[n].pin, LL_GPIO_PULL_NO);
+		LL_GPIO_SetPinSpeed(m_pulseEngines[n].port, m_pulseEngines[n].pin, LL_GPIO_SPEED_FREQ_HIGH);
 	}
 }
 
 
-void timer_init()
+void pulse_engine_init( tPulseEngine pulseEngines[], uint32_t nbr )
 {
-	pulseEngine[0].port = GPIOB;
-	pulseEngine[0].pin = LL_GPIO_PIN_3;
-	pulseEngine[0].freqency = 1000;
+	m_pulseEngines = pulseEngines;
+	m_nbrEngines = nbr;
 
 	//pulseEngine[1].port = GPIOC;
 	//pulseEngine[1].pin = LL_GPIO_PIN_3;
@@ -146,37 +146,41 @@ void TIM2_IRQHandler(void)
 
 	int32_t nextUpdateTime = MAX_TICKS + 1;
 
-	for( int n = 0; n < NBR_PULSE; n++ )
+	for( int n = 0; n < m_nbrEngines; n++ )
 	{
 		// Take off the time just passed
-		pulseEngine[n].timeLeft -= lastTime;
+		m_pulseEngines[n].timeLeft -= lastTime;
 
-		if( pulseEngine[n].timeLeft <= 0)
+		if( m_pulseEngines[n].timeLeft <= 0)
 		{
-			LL_GPIO_SetOutputPin(pulseEngine[n].port, pulseEngine[n].pin);
+			if(m_pulseEngines[n].countDown)
+			{
+				LL_GPIO_SetOutputPin(m_pulseEngines[n].port, m_pulseEngines[n].pin);
+				m_pulseEngines[n].countDown--;
+			}
 
 			// Save position
-			pulseEngine[n].position++;
+			m_pulseEngines[n].position++;
 
 			// Calculate number of ticks needed
-			uint32_t nextTick = TICK_FREQ / pulseEngine[n].freqency;
+			uint32_t nextTick = TICK_FREQ / m_pulseEngines[n].freqency;
 
 			// Note timeLeft might be negative
-			pulseEngine[n].timeLeft += nextTick;
+			m_pulseEngines[n].timeLeft += nextTick;
 		}
 
 		int32_t timeNext;
-		if(pulseEngine[n].timeLeft >= MAX_TICKS * 2)
+		if(m_pulseEngines[n].timeLeft >= MAX_TICKS * 2)
 		{
 			timeNext = MAX_TICKS;
 		}
-		else if(pulseEngine[n].timeLeft > MAX_TICKS) // Avoid a small value if timeLeft is just above MAX_TICKS
+		else if(m_pulseEngines[n].timeLeft > MAX_TICKS) // Avoid a small value if timeLeft is just above MAX_TICKS
 		{
-			timeNext = pulseEngine[n].timeLeft / 2;
+			timeNext = m_pulseEngines[n].timeLeft / 2;
 		}
 		else
 		{
-			timeNext = pulseEngine[n].timeLeft;
+			timeNext = m_pulseEngines[n].timeLeft;
 		}
 
 		// Find if this is the shortest time to wait
@@ -193,9 +197,9 @@ void TIM2_IRQHandler(void)
 	LL_TIM_SetAutoReload(TIM2, nextUpdateTime);
 	lastTime = nextUpdateTime;
 
-	for( int n = 0; n < NBR_PULSE; n++ )
+	for( int n = 0; n < m_nbrEngines; n++ )
 	{
 		// Falling edge
-		LL_GPIO_ResetOutputPin(pulseEngine[n].port, pulseEngine[n].pin);
+		LL_GPIO_ResetOutputPin(m_pulseEngines[n].port, m_pulseEngines[n].pin);
 	}
 }

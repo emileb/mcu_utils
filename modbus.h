@@ -34,7 +34,6 @@ void modbus_init(tModBusDevice *device, tUartDevice *uartDev, uint8_t id);
 
 void modbus_sendDiag(tModBusDevice *device);
 
-
 uint16_t modbus_sendReadReg(tModBusDevice *device, uint16_t reg);
 
 void modbus_sendWriteReg(tModBusDevice *device, uint16_t reg, uint16_t data);

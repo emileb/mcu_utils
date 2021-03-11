@@ -177,7 +177,7 @@ void modbus_init(tModBusDevice *device, tUartDevice *uartDev, uint8_t id)
 	device->id = id;
 }
 
-void modbus_sendDiag(tModBusDevice *device)
+void modbus_sendDiag(tModBusDevice *device, uint8_t id)
 {
 	uint8_t message[] =
 	{ device->id, 0x08, 0x00, 0x00, 0x86, 0x31 };
@@ -188,12 +188,12 @@ void modbus_sendDiag(tModBusDevice *device)
 	uartTxBuffer(device->uartDev, (uint8_t*) &crc, 2);
 }
 
-uint16_t modbus_sendReadReg(tModBusDevice *device, uint16_t reg)
+uint16_t modbus_sendReadReg(tModBusDevice *device, uint8_t id, uint16_t reg)
 {
 	const uint8_t cmd = CMD_MULTI_READ;
 
 	uint8_t message[] =
-	{ device->id, cmd, (reg >> 8) & 0xFF, reg & 0xFF, 0x00, 0x01 };
+	{ id, cmd, (reg >> 8) & 0xFF, reg & 0xFF, 0x00, 0x01 };
 
 	sendMessage(device, message, sizeof(message));
 
@@ -203,12 +203,12 @@ uint16_t modbus_sendReadReg(tModBusDevice *device, uint16_t reg)
 	return 0;
 }
 
-void modbus_sendWriteReg(tModBusDevice *device, uint16_t reg, uint16_t data)
+void modbus_sendWriteReg(tModBusDevice *device, uint8_t id, uint16_t reg, uint16_t data)
 {
 	const uint8_t cmd = CMD_SINGLE_WRITE;
 
 	uint8_t message[] =
-	{ device->id, cmd, (reg >> 8) & 0xFF, reg & 0xFF, (data >> 8) & 0xFF, data & 0xFF };
+	{ id, cmd, (reg >> 8) & 0xFF, reg & 0xFF, (data >> 8) & 0xFF, data & 0xFF };
 
 	sendMessage(device, message, sizeof(message));
 

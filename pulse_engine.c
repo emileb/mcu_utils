@@ -156,7 +156,9 @@ void TIM2_IRQHandler(void)
 			if(m_pulseEngines[n].countDown)
 			{
 				LL_GPIO_SetOutputPin(m_pulseEngines[n].port, m_pulseEngines[n].pin);
-				m_pulseEngines[n].countDown--;
+
+				if(m_pulseEngines[n].countDown > 0)
+					m_pulseEngines[n].countDown--;
 			}
 
 			// Save position

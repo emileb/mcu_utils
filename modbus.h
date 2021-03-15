@@ -21,10 +21,14 @@ typedef struct
 	uint8_t id;
 
 	uint8_t lastSentCmd;
+	uint8_t lastReceivedCmd;
 
 	uint32_t state;
 	uint8_t receiveData[MODBUS_MAX_DATA_LEN];
 	int32_t receivePos;
+
+	uint16_t writeReg;
+	uint16_t writeData;
 
 	int32_t dataLen;
 	int32_t dataStart;

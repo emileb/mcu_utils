@@ -91,8 +91,17 @@ static bool processByte(tModBusDevice *device, uint8_t b)
 	}
 	case STATE_CMD:
 	{
+
+		device->lastReceivedCmd = b;
+
 		if (b == CMD_MULTI_READ) // Need to read the data length
 			device->state = STATE_DATA_LEN;
+		else if (b == CMD_SINGLE_WRITE) // Receive the data, we know the length
+		{
+			device->dataLen = 4; // 2 for reg, 2 for data
+			device->dataStart = device->receivePos; // Save start position of the data
+			device->state = STATE_DATA;
+		}
 		else
 			// Unknown command
 			receiveError(device);
@@ -127,6 +136,16 @@ static bool processByte(tModBusDevice *device, uint8_t b)
 		{
 			// Check CRC, returns true if OK
 			messageReady = receiveDecode(device);
+
+			if(messageReady)
+			{
+				// Extract the write reg and data for easy use by the application
+				if(device->lastReceivedCmd == CMD_SINGLE_WRITE)
+				{
+					device->writeReg = device->receiveData[device->dataStart + 0] << 8 |  device->receiveData[device->dataStart + 1];
+					device->writeData = device->receiveData[device->dataStart + 2] << 8 |  device->receiveData[device->dataStart + 3];
+				}
+			}
 
 			resetReceiveState(device);
 		}

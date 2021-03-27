@@ -5,7 +5,7 @@
 
 #include "fifo.h"
 
-#if  defined(STM32F76xx)
+#if  defined(STM32F746xx)
 	#include "stm32f7xx_hal.h"
 #elif defined(STM32G431xx)
 	#include "stm32g4xx_hal.h"

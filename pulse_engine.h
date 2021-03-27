@@ -5,8 +5,8 @@
  *      Author: emile
  */
 
-#ifndef APPLICATION_STEPPER_H_
-#define APPLICATION_STEPPER_H_
+#ifndef _PULSE_ENGINE_H_
+#define _PULSE_ENGINE_H_
 
 #define NBR_PULSE 1
 
@@ -17,9 +17,14 @@ typedef struct
 
 	int32_t position;
 	uint32_t freqency;
+
+	uint32_t countDown;
+
 	int32_t timeLeft;
 }tPulseEngine;
 
-extern volatile tPulseEngine pulseEngine[NBR_PULSE];
+
+
+void pulse_engine_init( tPulseEngine pulseEngine[], uint32_t nbr );
 
 #endif /* APPLICATION_STEPPER_H_ */

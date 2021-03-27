@@ -9,6 +9,8 @@
 	#include "stm32f7xx_hal.h"
 #elif defined(STM32G431xx)
 	#include "stm32g4xx_hal.h"
+#elif defined(STM32F302x8)
+	#include "stm32f3xx_hal.h"
 #endif
 
 #define RX_DMA_SIZE 64

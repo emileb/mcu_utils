@@ -21,10 +21,14 @@ typedef struct
 	uint8_t id;
 
 	uint8_t lastSentCmd;
+	uint8_t lastReceivedCmd;
 
 	uint32_t state;
 	uint8_t receiveData[MODBUS_MAX_DATA_LEN];
 	int32_t receivePos;
+
+	uint16_t writeReg;
+	uint16_t writeData;
 
 	int32_t dataLen;
 	int32_t dataStart;
@@ -32,12 +36,11 @@ typedef struct
 
 void modbus_init(tModBusDevice *device, tUartDevice *uartDev, uint8_t id);
 
-void modbus_sendDiag(tModBusDevice *device);
+void modbus_sendDiag(tModBusDevice *device, uint8_t id);
 
+uint16_t modbus_sendReadReg(tModBusDevice *device, uint8_t id, uint16_t reg);
 
-uint16_t modbus_sendReadReg(tModBusDevice *device, uint16_t reg);
-
-void modbus_sendWriteReg(tModBusDevice *device, uint16_t reg, uint16_t data);
+void modbus_sendWriteReg(tModBusDevice *device, uint8_t id, uint16_t reg, uint16_t data);
 
 bool modbus_checkReceive(tModBusDevice *device);
 

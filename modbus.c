@@ -3,8 +3,6 @@
 
 #include "modbus.h"
 
-#define CMD_MULTI_READ 0x3
-#define CMD_SINGLE_WRITE 0x6
 
 typedef enum
 {
@@ -43,6 +41,9 @@ static void resetReceiveState(tModBusDevice *device)
 	device->state = STATE_ID;
 	device->receivePos = 0;
 	device->dataLen = 0;
+	device->lastReadReg = 0;
+	device->lastReceivedCmd = 0;
+	device->lastSentCmd = 0;
 }
 
 static bool receiveDecode(tModBusDevice *device)
@@ -94,9 +95,9 @@ static bool processByte(tModBusDevice *device, uint8_t b)
 
 		device->lastReceivedCmd = b;
 
-		if (b == CMD_MULTI_READ) // Need to read the data length
+		if (b == MODBUS_CMD_MULTI_READ) // Need to read the data length
 			device->state = STATE_DATA_LEN;
-		else if (b == CMD_SINGLE_WRITE) // Receive the data, we know the length
+		else if (b == MODBUS_CMD_SINGLE_WRITE) // Receive the data, we know the length
 		{
 			device->dataLen = 4; // 2 for reg, 2 for data
 			device->dataStart = device->receivePos; // Save start position of the data
@@ -110,7 +111,7 @@ static bool processByte(tModBusDevice *device, uint8_t b)
 	}
 	case STATE_DATA_LEN:
 	{
-		if (b < MODBUS_MAX_DATA_LEN)
+		if (b < MODBUS_MAX_DATA_LEN_BYTES)
 		{
 			device->dataLen = b;
 			device->dataStart = device->receivePos; // Save start position of the data
@@ -140,7 +141,7 @@ static bool processByte(tModBusDevice *device, uint8_t b)
 			if(messageReady)
 			{
 				// Extract the write reg and data for easy use by the application
-				if(device->lastReceivedCmd == CMD_SINGLE_WRITE)
+				if(device->lastReceivedCmd == MODBUS_CMD_SINGLE_WRITE)
 				{
 					device->writeReg = device->receiveData[device->dataStart + 0] << 8 |  device->receiveData[device->dataStart + 1];
 					device->writeData = device->receiveData[device->dataStart + 2] << 8 |  device->receiveData[device->dataStart + 3];
@@ -155,6 +156,15 @@ static bool processByte(tModBusDevice *device, uint8_t b)
 	}
 
 	return messageReady;
+}
+
+void modbus_reset(tModBusDevice *device)
+{
+	// Try to clear out any old received data
+	uartRxCheck(device->uartDev);
+	uartResetRxFifo(device->uartDev);
+
+	resetReceiveState(device);
 }
 
 bool modbus_checkReceive(tModBusDevice *device)
@@ -207,16 +217,17 @@ void modbus_sendDiag(tModBusDevice *device, uint8_t id)
 	uartTxBuffer(device->uartDev, (uint8_t*) &crc, 2);
 }
 
-uint16_t modbus_sendReadReg(tModBusDevice *device, uint8_t id, uint16_t reg)
+uint16_t modbus_sendMultiReadReg(tModBusDevice *device, uint8_t id, uint16_t regStart, uint16_t num)
 {
-	const uint8_t cmd = CMD_MULTI_READ;
+	const uint8_t cmd = MODBUS_CMD_MULTI_READ;
 
 	uint8_t message[] =
-	{ id, cmd, (reg >> 8) & 0xFF, reg & 0xFF, 0x00, 0x01 };
+	{ id, cmd, (regStart >> 8) & 0xFF, regStart & 0xFF, (num >> 8) & 0xFF, num & 0xFF};
 
 	sendMessage(device, message, sizeof(message));
 
 	device->lastSentCmd = cmd;
+	device->lastReadReg = regStart;
 	resetReceiveState(device);
 
 	return 0;
@@ -224,7 +235,7 @@ uint16_t modbus_sendReadReg(tModBusDevice *device, uint8_t id, uint16_t reg)
 
 void modbus_sendWriteReg(tModBusDevice *device, uint8_t id, uint16_t reg, uint16_t data)
 {
-	const uint8_t cmd = CMD_SINGLE_WRITE;
+	const uint8_t cmd = MODBUS_CMD_SINGLE_WRITE;
 
 	uint8_t message[] =
 	{ id, cmd, (reg >> 8) & 0xFF, reg & 0xFF, (data >> 8) & 0xFF, data & 0xFF };

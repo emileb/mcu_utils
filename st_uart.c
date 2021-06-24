@@ -30,7 +30,6 @@ void uartStartRx(tUartDevice *uartDev)
 	__HAL_DMA_ENABLE_IT (uartDev->dmaRx, DMA_IT_TC);
 
 	HAL_UART_Receive_DMA(uartDev->uart, uartDev->dmaRxBuffer, RX_DMA_SIZE);
-
 }
 
 void uartRxCheck(tUartDevice *uartDev)
